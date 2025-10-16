@@ -3,143 +3,678 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belgian Housing AI</title>
+    <title>Belgian Housing AI - Vastgoedmarkt Analyse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
+
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 800px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        h1 { 
-            color: #667eea; 
-            font-size: 2.5em; 
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
             margin-bottom: 10px;
         }
-        .subtitle {
+
+        .header p {
             color: #666;
             font-size: 1.1em;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .form-section {
             margin-bottom: 30px;
         }
-        .status {
-            background: #d4edda;
-            border: 2px solid #28a745;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            font-weight: bold;
+
+        .form-group {
+            margin-bottom: 20px;
         }
-        .endpoint {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .endpoint-title {
-            font-weight: bold;
+
+        label {
+            display: block;
+            font-weight: 600;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 1.1em;
         }
-        .endpoint-url {
-            font-family: 'Courier New', monospace;
-            color: #667eea;
-            font-size: 0.9em;
+
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
         }
-        .button {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 5px 5px 5px 0;
-            transition: background 0.3s;
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
         }
-        .button:hover {
-            background: #764ba2;
-        }
-        .features {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #eee;
-        }
-        .feature {
-            margin: 10px 0;
-            padding-left: 25px;
+
+        .search-box {
             position: relative;
         }
-        .feature:before {
-            content: "✓";
+
+        .search-results {
             position: absolute;
+            top: 100%;
             left: 0;
-            color: #28a745;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .search-result-item:hover {
+            background: #f8f9ff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .result-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .result-header .meta {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            color: #333;
+            font-size: 2em;
             font-weight: bold;
-            font-size: 1.2em;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .recommendations {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .recommendations h3 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏠 Belgian Housing AI</h1>
-        <p class="subtitle">AI-gedreven vastgoedmarkt analyse voor België</p>
-        
-        <div class="status">
-            ✅ API Server is Online!
+        <!-- Header -->
+        <div class="header">
+            <h1>🏠 Belgian Housing AI</h1>
+            <p>Professionele vastgoedmarkt analyse voor België</p>
         </div>
 
-        <h2 style="margin-bottom: 15px;">📊 Test de API</h2>
-        
-        <div class="endpoint">
-            <div class="endpoint-title">Health Check</div>
-            <div class="endpoint-url">/api/health</div>
-            <a href="/api/health" class="button" target="_blank">Test →</a>
+        <!-- Main Form -->
+        <div class="main-card" id="formSection">
+            <h2 style="color: #667eea; margin-bottom: 25px;">Selecteer een Gemeente</h2>
+            
+            <div class="error" id="errorMessage"></div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="searchInput">🔍 Zoek Gemeente</label>
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Type gemeente naam... (bijv. Antwerpen, Gent, Brussel)"
+                            autocomplete="off"
+                        >
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Of kies uit populaire gemeenten:</label>
+                    <select id="municipalitySelect">
+                        <option value="">-- Selecteer gemeente --</option>
+                    </select>
+                </div>
+
+                <button class="btn" id="analyzeBtn" disabled>
+                    📊 Analyseer Vastgoedmarkt
+                </button>
+            </div>
         </div>
 
-        <div class="endpoint">
-            <div class="endpoint-title">Alle Gemeenten</div>
-            <div class="endpoint-url">/api/municipalities?limit=20</div>
-            <a href="/api/municipalities?limit=20" class="button" target="_blank">Bekijk →</a>
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: white; font-size: 1.2em;">Analyse wordt uitgevoerd...</p>
         </div>
 
-        <div class="endpoint">
-            <div class="endpoint-title">Zoek Gemeente</div>
-            <div class="endpoint-url">/api/search?q=Antwerpen</div>
-            <a href="/api/search?q=Antwerpen" class="button" target="_blank">Zoek →</a>
-        </div>
+        <!-- Results -->
+        <div class="main-card results" id="results">
+            <div class="result-header" id="resultHeader">
+                <h2 id="municipalityName"></h2>
+                <div class="meta" id="municipalityMeta"></div>
+            </div>
 
-        <div class="endpoint">
-            <div class="endpoint-title">AI Voorspelling (Antwerpen)</div>
-            <div class="endpoint-url">/api/predictions/11002</div>
-            <a href="/api/predictions/11002" class="button" target="_blank">Voorspelling →</a>
-        </div>
+            <!-- Stats Grid -->
+            <div class="stats-grid" id="statsGrid"></div>
 
-        <div class="endpoint">
-            <div class="endpoint-title">Statistieken</div>
-            <div class="endpoint-url">/api/stats</div>
-            <a href="/api/stats" class="button" target="_blank">Stats →</a>
-        </div>
+            <!-- Charts -->
+            <div class="chart-container">
+                <h3>📊 Vraagverdeling per Appartement Type</h3>
+                <canvas id="demandChart"></canvas>
+            </div>
 
-        <div class="features">
-            <h2 style="margin-bottom: 15px;">✨ Features</h2>
-            <div class="feature">20+ Belgische gemeenten met échte data</div>
-            <div class="feature">AI voorspellingen per gemeente</div>
-            <div class="feature">REST API voor integraties</div>
-            <div class="feature">Statbel Open Data (gratis & betrouwbaar)</div>
-            <div class="feature">Real-time beschikbaar</div>
+            <div class="chart-container">
+                <h3>📈 Markt Indicators</h3>
+                <canvas id="marketChart"></canvas>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="recommendations" id="recommendations">
+                <h3>💡 Aanbevelingen</h3>
+                <div id="recommendationsList"></div>
+            </div>
+
+            <button class="btn back-btn" onclick="resetForm()">
+                ← Nieuwe Analyse
+            </button>
         </div>
     </div>
+
+    <script>
+        let municipalities = [];
+        let selectedNisCode = null;
+
+        // Load municipalities on page load
+        async function loadMunicipalities() {
+            try {
+                const response = await fetch('/api/municipalities?limit=100');
+                const data = await response.json();
+                municipalities = data.data;
+                
+                // Populate select dropdown
+                const select = document.getElementById('municipalitySelect');
+                municipalities.forEach(mun => {
+                    const option = document.createElement('option');
+                    option.value = mun.nis_code;
+                    option.textContent = `${mun.name_nl} (${mun.region})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                showError('Kon gemeenten niet laden. Probeer de pagina te verversen.');
+            }
+        }
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (query.length < 2) {
+                searchResults.classList.remove('show');
+                return;
+            }
+
+            const filtered = municipalities.filter(mun => 
+                mun.name_nl.toLowerCase().includes(query) ||
+                mun.name_fr.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">Geen resultaten gevonden</div>';
+            } else {
+                searchResults.innerHTML = filtered.map(mun => `
+                    <div class="search-result-item" onclick="selectMunicipality('${mun.nis_code}', '${mun.name_nl}')">
+                        <strong>${mun.name_nl}</strong> (${mun.region}) - ${mun.population.toLocaleString()} inwoners
+                    </div>
+                `).join('');
+            }
+            
+            searchResults.classList.add('show');
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-box')) {
+                searchResults.classList.remove('show');
+            }
+        });
+
+        // Select dropdown change
+        document.getElementById('municipalitySelect').addEventListener('change', (e) => {
+            if (e.target.value) {
+                selectedNisCode = e.target.value;
+                const mun = municipalities.find(m => m.nis_code === e.target.value);
+                searchInput.value = mun.name_nl;
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        });
+
+        function selectMunicipality(nisCode, name) {
+            selectedNisCode = nisCode;
+            searchInput.value = name;
+            document.getElementById('municipalitySelect').value = nisCode;
+            searchResults.classList.remove('show');
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+
+        // Analyze button
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeMunicipality);
+
+        async function analyzeMunicipality() {
+            if (!selectedNisCode) return;
+
+            // Show loading
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('errorMessage').classList.remove('show');
+
+            try {
+                // Fetch municipality data
+                const munResponse = await fetch(`/api/municipalities/${selectedNisCode}`);
+                const munData = await munResponse.json();
+
+                // Fetch prediction
+                const predResponse = await fetch(`/api/predictions/${selectedNisCode}`);
+                const predData = await predResponse.json();
+
+                if (!munData.success || !predData.success) {
+                    throw new Error('Data niet beschikbaar');
+                }
+
+                // Display results
+                displayResults(munData.data, predData.data);
+
+            } catch (error) {
+                showError('Er ging iets mis bij het ophalen van de data. Probeer opnieuw.');
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('formSection').style.display = 'block';
+            }
+        }
+
+        function displayResults(munData, predData) {
+            // Hide loading, show results
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('results').classList.add('show');
+
+            const mun = munData.municipality;
+            const pred = predData;
+
+            // Header
+            document.getElementById('municipalityName').textContent = mun.name_nl;
+            document.getElementById('municipalityMeta').innerHTML = `
+                ${mun.region} | ${mun.province} | ${mun.population.toLocaleString()} inwoners
+            `;
+
+            // Stats Grid
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="label">Bevolking</div>
+                    <div class="value">${mun.population.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Dichtheid</div>
+                    <div class="value">${Math.round(mun.density)} inw/km²</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Oppervlakte</div>
+                    <div class="value">${mun.area_km2} km²</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Betrouwbaarheid</div>
+                    <div class="value">${pred.confidence_score}%</div>
+                </div>
+            `;
+
+            // Demand Chart
+            createDemandChart(pred);
+
+            // Market Chart
+            createMarketChart(pred);
+
+            // Recommendations
+            generateRecommendations(pred, mun);
+        }
+
+        function createDemandChart(pred) {
+            const ctx = document.getElementById('demandChart');
+            
+            // Destroy existing chart if any
+            if (window.demandChartInstance) {
+                window.demandChartInstance.destroy();
+            }
+
+            window.demandChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Studio\'s', '1 Slaapkamer', '2 Slaapkamers'],
+                    datasets: [{
+                        data: [
+                            pred.studio_demand_pct,
+                            pred.one_bed_demand_pct,
+                            pred.two_bed_demand_pct
+                        ],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMarketChart(pred) {
+            const ctx = document.getElementById('marketChart');
+            
+            if (window.marketChartInstance) {
+                window.marketChartInstance.destroy();
+            }
+
+            window.marketChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Studio', '1 Slaapkamer', '2 Slaapkamers'],
+                    datasets: [{
+                        label: 'Voorspelde Vraag (%)',
+                        data: [
+                            pred.studio_demand_pct,
+                            pred.one_bed_demand_pct,
+                            pred.two_bed_demand_pct
+                        ],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateRecommendations(pred, mun) {
+            const recommendations = [];
+
+            // Highest demand
+            const demands = [
+                { type: 'Studio\'s', pct: pred.studio_demand_pct },
+                { type: '1-slaapkamer appartementen', pct: pred.one_bed_demand_pct },
+                { type: '2-slaapkamer appartementen', pct: pred.two_bed_demand_pct }
+            ];
+            demands.sort((a, b) => b.pct - a.pct);
+
+            recommendations.push(`
+                <div class="recommendation-item">
+                    <strong>🎯 Hoogste Vraag:</strong> ${demands[0].type} (${demands[0].pct}% van de markt). 
+                    Focus hierop voor optimale verkoop.
+                </div>
+            `);
+
+            // Density based
+            if (mun.density > 2000) {
+                recommendations.push(`
+                    <div class="recommendation-item">
+                        <strong>🏙️ Stedelijk Gebied:</strong> Hoge bevolkingsdichtheid (${Math.round(mun.density)} inw/km²). 
+                        Compact bouwen met focus op studio's en 1-slaapkamer.
+                    </div>
+                `);
+            } else if (mun.density < 500) {
+                recommendations.push(`
+                    <div class="recommendation-item">
+                        <strong>🌳 Landelijk Gebied:</strong> Lagere dichtheid (${Math.round(mun.density)} inw/km²). 
+                        Ruimere appartementen (2-3 slaapkamers) zijn geschikter.
+                    </div>
+                `);
+            }
+
+            // Market balance
+            if (Math.max(...demands.map(d => d.pct)) - Math.min(...demands.map(d => d.pct)) < 15) {
+                recommendations.push(`
+                    <div class="recommendation-item">
+                        <strong>⚖️ Gebalanceerde Markt:</strong> Vraag is gelijkmatig verdeeld. 
+                        Overweeg een diverse mix van appartement types.
+                    </div>
+                `);
+            }
+
+            document.getElementById('recommendationsList').innerHTML = recommendations.join('');
+        }
+
+        function resetForm() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('municipalitySelect').value = '';
+            document.getElementById('analyzeBtn').disabled = true;
+            selectedNisCode = null;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        // Initialize
+        loadMunicipalities();
+    </script>
 </body>
 </html>
