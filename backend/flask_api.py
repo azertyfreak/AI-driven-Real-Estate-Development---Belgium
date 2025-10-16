@@ -1,12 +1,13 @@
 """
 Belgian Housing AI - REST API
-Simplified Flask API for GitHub deployment
+Flask API with Homepage Support
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -29,19 +30,38 @@ def query_db(query, args=(), one=False):
 
 @app.route('/')
 def index():
-    """API documentation"""
-    return jsonify({
-        'name': 'Belgian Housing AI API',
-        'version': '1.0.0',
-        'endpoints': {
-            'health': '/api/health',
-            'municipalities': '/api/municipalities',
-            'municipality': '/api/municipalities/<nis_code>',
-            'predictions': '/api/predictions/<nis_code>',
-            'search': '/api/search?q=<query>',
-            'stats': '/api/stats'
-        }
-    })
+    """Serve homepage"""
+    try:
+        # Try to serve index.html from parent directory
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        index_path = os.path.join(parent_dir, 'index.html')
+        
+        if os.path.exists(index_path):
+            with open(index_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        else:
+            # Fallback to JSON response
+            return jsonify({
+                'name': 'Belgian Housing AI API',
+                'version': '1.0.0',
+                'status': 'running',
+                'message': 'API is online! Try /api/health to test.',
+                'endpoints': {
+                    'health': '/api/health',
+                    'municipalities': '/api/municipalities',
+                    'municipality': '/api/municipalities/<nis_code>',
+                    'predictions': '/api/predictions/<nis_code>',
+                    'search': '/api/search?q=<query>',
+                    'stats': '/api/stats'
+                }
+            })
+    except Exception as e:
+        return jsonify({
+            'error': 'Could not load homepage',
+            'message': str(e),
+            'api_status': 'running',
+            'try': '/api/health'
+        })
 
 @app.route('/api/health')
 def health():
@@ -225,8 +245,9 @@ if __name__ == '__main__':
     print(f"💾 Database: {DB_PATH}")
     print(f"🌐 Server: http://0.0.0.0:5000")
     print("=" * 70)
-    print("\n📋 Endpoints:")
-    print("  GET  /api/health")
+    print("\n📋 Available Endpoints:")
+    print("  GET  /              (Homepage)")
+    print("  GET  /api/health    (Health check)")
     print("  GET  /api/municipalities")
     print("  GET  /api/municipalities/<nis>")
     print("  GET  /api/predictions/<nis>")
