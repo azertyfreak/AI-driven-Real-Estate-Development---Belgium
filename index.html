@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belgian Housing AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { 
+            color: #667eea; 
+            font-size: 2.5em; 
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .endpoint-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .endpoint-url {
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            font-size: 0.9em;
+        }
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px 5px 5px 0;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #764ba2;
+        }
+        .features {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+        .feature {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .feature:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Belgian Housing AI</h1>
+        <p class="subtitle">AI-gedreven vastgoedmarkt analyse voor België</p>
+        
+        <div class="status">
+            ✅ API Server is Online!
+        </div>
+
+        <h2 style="margin-bottom: 15px;">📊 Test de API</h2>
+        
+        <div class="endpoint">
+            <div class="endpoint-title">Health Check</div>
+            <div class="endpoint-url">/api/health</div>
+            <a href="/api/health" class="button" target="_blank">Test →</a>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-title">Alle Gemeenten</div>
+            <div class="endpoint-url">/api/municipalities?limit=20</div>
+            <a href="/api/municipalities?limit=20" class="button" target="_blank">Bekijk →</a>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-title">Zoek Gemeente</div>
+            <div class="endpoint-url">/api/search?q=Antwerpen</div>
+            <a href="/api/search?q=Antwerpen" class="button" target="_blank">Zoek →</a>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-title">AI Voorspelling (Antwerpen)</div>
+            <div class="endpoint-url">/api/predictions/11002</div>
+            <a href="/api/predictions/11002" class="button" target="_blank">Voorspelling →</a>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-title">Statistieken</div>
+            <div class="endpoint-url">/api/stats</div>
+            <a href="/api/stats" class="button" target="_blank">Stats →</a>
+        </div>
+
+        <div class="features">
+            <h2 style="margin-bottom: 15px;">✨ Features</h2>
+            <div class="feature">20+ Belgische gemeenten met échte data</div>
+            <div class="feature">AI voorspellingen per gemeente</div>
+            <div class="feature">REST API voor integraties</div>
+            <div class="feature">Statbel Open Data (gratis & betrouwbaar)</div>
+            <div class="feature">Real-time beschikbaar</div>
+        </div>
+    </div>
+</body>
+</html>
